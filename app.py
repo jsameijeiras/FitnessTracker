@@ -170,94 +170,36 @@ def leaderboard():
     if 'username' not in session:
         return redirect(url_for('index'))
     
-    try:
-        # Get current week's start (Monday)
-        today = datetime.now().date()
-        start_of_week = today - timedelta(days=today.weekday())
-        
-        # Get current month's start
-        start_of_month = datetime(today.year, today.month, 1).date()
-        
-        # Weekly leaderboard
-        weekly_leaders = db.session.query(
-            User.username,
-            func.count(Checkin.id).label('checkin_count')
-        ).join(Checkin, isouter=True).filter(
-            func.date(Checkin.checkin_date) >= start_of_week
-        ).group_by(
-            User.username
-        ).order_by(
-            func.count(Checkin.id).desc()
-        ).limit(10).all()
-        
-        # Monthly leaderboard
-        monthly_leaders = db.session.query(
-            User.username,
-            func.count(Checkin.id).label('checkin_count')
-        ).join(Checkin, isouter=True).filter(
-            func.date(Checkin.checkin_date) >= start_of_month
-        ).group_by(
-            User.username
-        ).order_by(
-            func.count(Checkin.id).desc()
-        ).limit(10).all()
-        
-        db.session.commit()
-</old_str>
-<new_str>
-@app.route('/leaderboard')
-def leaderboard():
-    """Show leaderboard of users with most checkins"""
-    if 'username' not in session:
-        return redirect(url_for('index'))
+    # Get current week's start (Monday)
+    today = datetime.now().date()
+    start_of_week = today - timedelta(days=today.weekday())
     
-    try:
-        # Get current week's start (Monday)
-        today = datetime.now().date()
-        start_of_week = today - timedelta(days=today.weekday())
-        
-        # Get current month's start
-        start_of_month = datetime(today.year, today.month, 1).date()
-        
-        # Weekly leaderboard
-        weekly_leaders = db.session.query(
-            User.username,
-            func.count(Checkin.id).label('checkin_count')
-        ).join(Checkin, isouter=True).filter(
-            func.date(Checkin.checkin_date) >= start_of_week
-        ).group_by(
-            User.username
-        ).order_by(
-            func.count(Checkin.id).desc()
-        ).limit(10).all()
-        
-        # Monthly leaderboard
-        monthly_leaders = db.session.query(
-            User.username,
-            func.count(Checkin.id).label('checkin_count')
-        ).join(Checkin, isouter=True).filter(
-            func.date(Checkin.checkin_date) >= start_of_month
-        ).group_by(
-            User.username
-        ).order_by(
-            func.count(Checkin.id).desc()
-        ).limit(10).all()
-        
-        return render_template(
-            'leaderboard.html', 
-            weekly_leaders=weekly_leaders,
-            monthly_leaders=monthly_leaders,
-            username=session['username']
-        )
-    except Exception as e:
-        app.logger.error(f"Database error in leaderboard: {str(e)}")
-        db.session.rollback()
-        return render_template(
-            'leaderboard.html',
-            weekly_leaders=[],
-            monthly_leaders=[],
-            username=session['username']
-        )
+    # Get current month's start
+    start_of_month = datetime(today.year, today.month, 1).date()
+    
+    # Weekly leaderboard
+    weekly_leaders = db.session.query(
+        User.username,
+        func.count(Checkin.id).label('checkin_count')
+    ).join(Checkin).filter(
+        func.date(Checkin.checkin_date) >= start_of_week
+    ).group_by(
+        User.username
+    ).order_by(
+        func.count(Checkin.id).desc()
+    ).limit(10).all()
+    
+    # Monthly leaderboard
+    monthly_leaders = db.session.query(
+        User.username,
+        func.count(Checkin.id).label('checkin_count')
+    ).join(Checkin).filter(
+        func.date(Checkin.checkin_date) >= start_of_month
+    ).group_by(
+        User.username
+    ).order_by(
+        func.count(Checkin.id).desc()
+    ).limit(10).all()
     
     return render_template(
         'leaderboard.html', 
