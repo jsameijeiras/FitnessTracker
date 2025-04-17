@@ -1,0 +1,77 @@
+Awesome idea — a simple self-hosted web app for gym tracking among friends is totally doable, even with a lean setup. Below is a **Product Description** and a detailed list of **Feature Requests** for your solo dev to work from. The idea is to keep it simple, use Google Sheets as a backend (via Apps Script or Sheet API), and make it mobile-friendly without going native.
+
+---
+
+### 🏋️‍♂️ Product Name: **GymLog Club**  
+**Tagline:** *Share your grind. Keep each other motivated.*
+
+---
+
+## 🧾 Product Description
+
+**GymLog Club** is a lightweight web application that allows a group of friends to log and view their gym activity through a clean and simple mobile-friendly interface. Users can check in daily, optionally upload training details and a photo, and see a daily/weekly report of everyone’s activity. The backend is powered by Google Sheets, and the app is self-hosted using basic HTML/CSS/JavaScript — no Android/iOS app required.
+
+---
+
+## ⚙️ Key Features (MVP Scope)
+
+### 1. 🔐 Simple Identification
+- No login system — users identify themselves by entering a shared name/initials or selecting from a dropdown.
+- Optionally use a shared "group code" (stored locally in the browser) to avoid unwanted access.
+
+### 2. ✅ Daily Check-In
+- A button that says **“I went to the gym today”**
+- Timestamps and user name are logged into Google Sheets.
+
+### 3. 📝 Optional Details
+- A simple text field: “What did you train?”
+- An optional photo upload (stored in Google Drive, with the link stored in the sheet).
+
+### 4. 📊 Group Feed / Report View
+- A feed showing:
+  - Each user’s gym check-ins (last 7 days or so)
+  - What they trained (if entered)
+  - Any photos uploaded
+- Sortable by date or person.
+
+### 5. 📱 Mobile-Optimized UI
+- Responsive layout (using CSS grid/flexbox)
+- One-page webapp (can be added to home screen as a PWA if needed later)
+
+---
+
+## 🗃️ Data Structure (Google Sheet)
+
+Columns:
+- `Timestamp`
+- `UserName`
+- `WorkoutDescription` (optional)
+- `ImageURL` (optional)
+
+You’ll also need:
+- A public folder in Google Drive to store images (with a script to accept uploads)
+- A Google Apps Script or Firebase endpoint to write to the Sheet
+
+---
+
+## 📌 Developer Notes
+
+- **Frontend:** Basic HTML/CSS/JavaScript (React/Vue optional but not necessary)
+- **Backend:** Google Sheets API or Apps Script Web App as a REST API
+- **Hosting:** GitHub Pages, Firebase Hosting, or even Google Drive static site + Apps Script
+- **Authentication:** None, or very light (name + localStorage memory)
+- **File Uploads:** Google Apps Script for receiving file and saving to Drive, return the file’s public link
+
+---
+
+## 🧪 Optional Extras (Post-MVP)
+
+- Weekly leaderboard (most gym days)
+- Streak counter
+- Comment feature (“Nice one!” buttons)
+- PWA functionality for installable experience
+- Reminders (via email or push notifications via a cron script)
+
+---
+
+Want me to help you write the actual Google Apps Script backend and a basic frontend HTML template too?
