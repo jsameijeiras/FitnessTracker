@@ -1,6 +1,6 @@
 # 🏋️‍♂️ Report
 
-**Repórtense banda**
+**Repórtense banda CHANGE**
 
 Report es una aplicación web ligera que permite a un grupo de amigos registrar y ver su actividad en el gimnasio a través de una interfaz simple y adaptada a dispositivos móviles. Los usuarios pueden registrarse diariamente, opcionalmente subir detalles de su entrenamiento y una foto, y ver un informe diario/semanal de la actividad de todos.
 
