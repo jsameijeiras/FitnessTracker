@@ -1,0 +1,107 @@
+{% extends 'layout.html' %}
+
+{% block title %}Clasificación{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-primary text-white">
+                <h2 class="mb-0">
+                    <i class="fas fa-trophy me-2"></i>Top Semanal
+                </h2>
+            </div>
+            <div class="card-body">
+                {% if weekly_leaders %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Usuario</th>
+                                    <th>Entrenamientos</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for leader in weekly_leaders %}
+                                <tr {% if leader.username == username %}class="table-success"{% endif %}>
+                                    <td>{{ loop.index }}</td>
+                                    <td>{{ leader.username }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress flex-grow-1 me-2" style="height: 10px;">
+                                                <div class="progress-bar bg-success" role="progressbar" 
+                                                    style="width: {{ (leader.checkin_count / weekly_leaders[0].checkin_count) * 100 }}%"></div>
+                                            </div>
+                                            <span class="badge bg-success">{{ leader.checkin_count }}</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>No hay registros esta semana. ¡Sé el primero en registrarte!
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-success text-white">
+                <h2 class="mb-0">
+                    <i class="fas fa-medal me-2"></i>Top Mensual
+                </h2>
+            </div>
+            <div class="card-body">
+                {% if monthly_leaders %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Usuario</th>
+                                    <th>Entrenamientos</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for leader in monthly_leaders %}
+                                <tr {% if leader.username == username %}class="table-success"{% endif %}>
+                                    <td>{{ loop.index }}</td>
+                                    <td>{{ leader.username }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress flex-grow-1 me-2" style="height: 10px;">
+                                                <div class="progress-bar bg-success" role="progressbar" 
+                                                    style="width: {{ (leader.checkin_count / monthly_leaders[0].checkin_count) * 100 }}%"></div>
+                                            </div>
+                                            <span class="badge bg-success">{{ leader.checkin_count }}</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>No hay registros este mes. ¡Sé el primero en registrarte!
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 text-center mt-3 mb-5">
+        <a href="{{ url_for('checkin') }}" class="btn btn-lg btn-success">
+            <i class="fas fa-dumbbell me-2"></i>¡Entrené hoy!
+        </a>
+    </div>
+</div>
+{% endblock %}
