@@ -21,7 +21,7 @@ La aplicación utiliza Google Sheets como base de datos y Google Drive para alma
 - Google Drive aloja fotos de entrenamientos subidas
 - Ambos se acceden a través de clientes de API de Google en el backend de Flask
 
-## Configuración
+## Configuración Local
 
 ### Variables de Entorno Requeridas
 
@@ -35,13 +35,39 @@ Para usar las APIs de Google Sheets y Drive, se necesitan las siguientes variabl
 
 Sin estas variables, la aplicación funciona en modo desarrollo con datos locales temporales.
 
-### Ejecución de la Aplicación
+### Ejecución de la Aplicación Local
 
 Para iniciar el servidor:
 
-```
+```bash
 gunicorn --bind 0.0.0.0:5000 main:app
 ```
+
+## Despliegue en Render
+
+Para desplegar esta aplicación en Render, sigue estos pasos:
+
+1. **Fork o clona este repositorio** en tu cuenta de GitHub
+
+2. **Crea un nuevo Web Service en Render**:
+   - Conecta tu cuenta de GitHub a Render
+   - Selecciona el repositorio
+   - Configura el servicio:
+     - **Nombre**: Elige un nombre para tu app
+     - **Environment**: Python 3
+     - **Build Command**: `pip install -r render_requirements.txt`
+     - **Start Command**: `gunicorn main:app`
+
+3. **Configura las variables de entorno** en la sección Environment Variables:
+   - `GOOGLE_SHEETS_API_KEY`
+   - `GOOGLE_DRIVE_API_KEY`
+   - `GOOGLE_SHEET_ID`
+   - `GOOGLE_DRIVE_FOLDER_ID`
+   - `SESSION_SECRET`
+
+4. **Despliega** haciendo clic en "Create Web Service"
+
+Tu aplicación estará disponible en la URL asignada por Render: `https://tu-app.onrender.com`
 
 ## Desarrollo
 
