@@ -47,7 +47,7 @@ gunicorn --bind 0.0.0.0:5000 main:app
 
 Para desplegar esta aplicación en Render, sigue estos pasos:
 
-### Método 1: Despliegue manual
+### Método 1: Despliegue manual con Poetry
 
 1. **Fork o clona este repositorio** en tu cuenta de GitHub
 
@@ -57,7 +57,7 @@ Para desplegar esta aplicación en Render, sigue estos pasos:
    - Configura el servicio:
      - **Nombre**: Elige un nombre para tu app
      - **Environment**: Python 3
-     - **Build Command**: `./build.sh`
+     - **Build Command**: `poetry install`
      - **Start Command**: `gunicorn main:app`
 
 3. **Configura las variables de entorno** en la sección Environment Variables:
@@ -66,12 +66,14 @@ Para desplegar esta aplicación en Render, sigue estos pasos:
    - `GOOGLE_SHEET_ID`
    - `GOOGLE_DRIVE_FOLDER_ID`
    - `SESSION_SECRET`
+   - `PYTHON_VERSION`: 3.11.11
+   - `POETRY_VERSION`: 1.7.1
 
 4. **Despliega** haciendo clic en "Create Web Service"
 
 ### Método 2: Despliegue automático con Blueprint
 
-Este repositorio incluye un archivo `render.yaml` que configura automáticamente el despliegue. Para usarlo:
+Este repositorio incluye un archivo `render.yaml` que configura automáticamente el despliegue con Poetry. Para usarlo:
 
 1. **Fork o clona este repositorio** en tu cuenta de GitHub
 
@@ -79,7 +81,7 @@ Este repositorio incluye un archivo `render.yaml` que configura automáticamente
 
 3. Conecta tu repositorio de GitHub
 
-4. Render detectará el archivo `render.yaml` y configurará automáticamente el servicio
+4. Render detectará el archivo `render.yaml` y configurará automáticamente el servicio con Poetry
 
 5. **Configura las variables de entorno** en la sección Environment Variables del servicio creado
 
