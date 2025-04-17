@@ -1,0 +1,51 @@
+The error you're encountering during deployment on Render—`[tool.poetry] section not found in pyproject.toml`—indicates that Render is attempting to use Poetry for dependency management because it detects a `pyproject.toml` file. However, this file lacks the necessary `[tool.poetry]` section, leading to the failure.
+
+**Cause:**
+
+Render's build system automatically uses Poetry when a `pyproject.toml` file is present. If this file doesn't contain the `[tool.poetry]` section, Poetry cannot proceed, resulting in the error. This behavior is consistent with Poetry's expectations, as it requires specific configurations within `pyproject.toml` to function correctly citeturn0search2.
+
+**Resolution:**
+
+To resolve this issue, you have two options:
+
+1. **Configure `pyproject.toml` for Poetry:**
+
+   If you intend to use Poetry, ensure that your `pyproject.toml` includes the necessary `[tool.poetry]` section. This section should define your project's metadata and dependencies. A minimal example:
+
+   ```toml
+   [tool.poetry]
+   name = "fitness-tracker"
+   version = "0.1.0"
+   description = "A simple fitness tracking app"
+   authors = ["Your Name <you@example.com>"]
+
+   [tool.poetry.dependencies]
+   python = "^3.11"
+   flask = "^2.0"
+   gunicorn = "^20.0"
+
+   [build-system]
+   requires = ["poetry-core"]
+   build-backend = "poetry.core.masonry.api"
+   ```
+
+
+   Ensure that this file is committed to your repository so that Render can access it during the build process.
+
+2. **Remove `pyproject.toml` and Use `requirements.txt`:**
+
+   If you prefer not to use Poetry, you can remove the `pyproject.toml` file and instead use a `requirements.txt` file to specify your dependencies. This approach aligns with traditional Python dependency management and is compatible with Render's build system. Create a `requirements.txt` file listing your dependencies:
+
+   ```
+   flask
+   gunicorn
+   ```
+
+
+   Then, in Render's build settings, set the build command to `pip install -r requirements.txt` and the start command to `gunicorn app:app`, replacing `app:app` with the appropriate module and application name if different.
+
+**Recommendation:**
+
+For simplicity and to align with Render's default behavior, using a `requirements.txt` file is often the more straightforward approach unless you have specific reasons to use Poetry.
+
+If you need assistance with either approach or encounter further issues, feel free to ask! 
