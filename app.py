@@ -75,10 +75,12 @@ def feed():
     if 'username' not in session:
         return redirect(url_for('index'))
     
-    # Get recent checkins from database (last 7 days)
+    # Get recent checkins from database (last 7 days) for the user's group
     seven_days_ago = datetime.now() - timedelta(days=7)
+    group_name = session.get('group_name')
     checkins = Checkin.query.join(User).filter(
-        Checkin.checkin_date >= seven_days_ago
+        Checkin.checkin_date >= seven_days_ago,
+        User.group_name == group_name
     ).order_by(
         desc(Checkin.checkin_date)
     ).all()
@@ -141,7 +143,11 @@ def get_feed_data():
     
     # Get recent checkins from database (last 7 days)
     seven_days_ago = datetime.now() - timedelta(days=7)
-    query = Checkin.query.join(User).filter(Checkin.checkin_date >= seven_days_ago)
+    group_name = session.get('group_name')
+    query = Checkin.query.join(User).filter(
+        Checkin.checkin_date >= seven_days_ago,
+        User.group_name == group_name
+    )
     
     if sort_by == 'person':
         query = query.order_by(User.username, desc(Checkin.checkin_date))
@@ -177,12 +183,14 @@ def leaderboard():
     # Get current month's start
     start_of_month = datetime(today.year, today.month, 1).date()
     
-    # Weekly leaderboard
+    # Weekly leaderboard for user's group
+    group_name = session.get('group_name')
     weekly_leaders = db.session.query(
         User.username,
         func.count(Checkin.id).label('checkin_count')
     ).join(Checkin).filter(
-        func.date(Checkin.checkin_date) >= start_of_week
+        func.date(Checkin.checkin_date) >= start_of_week,
+        User.group_name == group_name
     ).group_by(
         User.username
     ).order_by(
