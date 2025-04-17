@@ -47,6 +47,8 @@ gunicorn --bind 0.0.0.0:5000 main:app
 
 Para desplegar esta aplicación en Render, sigue estos pasos:
 
+### Método 1: Despliegue manual
+
 1. **Fork o clona este repositorio** en tu cuenta de GitHub
 
 2. **Crea un nuevo Web Service en Render**:
@@ -55,7 +57,7 @@ Para desplegar esta aplicación en Render, sigue estos pasos:
    - Configura el servicio:
      - **Nombre**: Elige un nombre para tu app
      - **Environment**: Python 3
-     - **Build Command**: `pip install -r render_requirements.txt`
+     - **Build Command**: `./build.sh`
      - **Start Command**: `gunicorn main:app`
 
 3. **Configura las variables de entorno** en la sección Environment Variables:
@@ -66,6 +68,20 @@ Para desplegar esta aplicación en Render, sigue estos pasos:
    - `SESSION_SECRET`
 
 4. **Despliega** haciendo clic en "Create Web Service"
+
+### Método 2: Despliegue automático con Blueprint
+
+Este repositorio incluye un archivo `render.yaml` que configura automáticamente el despliegue. Para usarlo:
+
+1. **Fork o clona este repositorio** en tu cuenta de GitHub
+
+2. Ve a [Render Dashboard](https://dashboard.render.com/) y selecciona "Blueprint" en el menú
+
+3. Conecta tu repositorio de GitHub
+
+4. Render detectará el archivo `render.yaml` y configurará automáticamente el servicio
+
+5. **Configura las variables de entorno** en la sección Environment Variables del servicio creado
 
 Tu aplicación estará disponible en la URL asignada por Render: `https://tu-app.onrender.com`
 
