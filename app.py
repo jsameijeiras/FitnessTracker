@@ -1,13 +1,10 @@
 import os
 import logging
-import json
-import uuid
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, url_for, jsonify, session, flash
 from werkzeug.middleware.proxy_fix import ProxyFix
-from werkzeug.utils import secure_filename
-from utils.sheets_helper import GoogleSheetsHelper
-from utils.drive_helper import GoogleDriveHelper
+from models import db, User, Checkin
+from sqlalchemy import extract, func, and_, desc
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -17,29 +14,25 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "report-dev-key")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
+# Configure database
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "pool_recycle": 300,
+    "pool_pre_ping": True,
+}
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+# Initialize the database
+db.init_app(app)
+
+# Create tables if they don't exist
+with app.app_context():
+    db.create_all()
+
 # Add template context processor for current date/time
 @app.context_processor
 def inject_now():
     return {'now': datetime.now()}
-
-# Initialize Google API helpers with development mode until credentials are provided
-sheets_helper = GoogleSheetsHelper()
-drive_helper = GoogleDriveHelper()
-
-# Store local check-ins for development mode
-local_checkins = []
-
-# Global variables
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-UPLOAD_FOLDER = '/tmp/report_uploads'
-
-# Ensure upload directory exists
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
-
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/')
 def index():
@@ -50,14 +43,22 @@ def index():
 def set_user():
     """Set the current user in the session"""
     username = request.form.get('username')
-    group_code = request.form.get('group_code')
+    group_name = request.form.get('group_code', 'Cabritinhas')
     
     if not username:
         flash('Por favor, ingresa tu nombre', 'error')
         return redirect(url_for('index'))
     
+    # Check if user exists, if not create a new user
+    with app.app_context():
+        user = User.query.filter_by(username=username).first()
+        if not user:
+            user = User(username=username, group_name=group_name)
+            db.session.add(user)
+            db.session.commit()
+    
     session['username'] = username
-    session['group_code'] = group_code
+    session['group_name'] = group_name
     
     return redirect(url_for('feed'))
 
@@ -65,7 +66,7 @@ def set_user():
 def logout():
     """Clear the user session"""
     session.pop('username', None)
-    session.pop('group_code', None)
+    session.pop('group_name', None)
     return redirect(url_for('index'))
 
 @app.route('/feed')
@@ -74,12 +75,25 @@ def feed():
     if 'username' not in session:
         return redirect(url_for('index'))
     
-    # Get feed data from Google Sheets or local cache
-    if not sheets_helper.service and local_checkins:
-        # Use local checkins in development mode
-        entries = local_checkins
-    else:
-        entries = sheets_helper.get_recent_entries(days=7)
+    # Get recent checkins from database (last 7 days)
+    seven_days_ago = datetime.now() - timedelta(days=7)
+    checkins = Checkin.query.join(User).filter(
+        Checkin.checkin_date >= seven_days_ago
+    ).order_by(
+        desc(Checkin.checkin_date)
+    ).all()
+    
+    # Format data for template
+    entries = []
+    for checkin in checkins:
+        entries.append({
+            'id': checkin.id,
+            'username': checkin.user.username,
+            'workout_description': checkin.workout_description,
+            'date': checkin.formatted_date,
+            'time': checkin.formatted_time,
+            'timestamp': checkin.checkin_date.strftime('%Y-%m-%d %H:%M:%S')
+        })
     
     return render_template('feed.html', entries=entries, username=session['username'])
 
@@ -92,42 +106,21 @@ def checkin():
     if request.method == 'POST':
         username = session['username']
         workout_description = request.form.get('workout_description', '')
-        checkin_id = request.form.get('checkin_id', str(uuid.uuid4()))
         
-        image_url = None
-        if 'workout_image' in request.files:
-            file = request.files['workout_image']
-            if file and file.filename and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                file_path = os.path.join(UPLOAD_FOLDER, filename)
-                file.save(file_path)
-                
-                # Upload to Google Drive
-                image_url = drive_helper.upload_file(file_path, filename)
-                
-                # Remove temporary file
-                os.remove(file_path)
+        # Find the user
+        user = User.query.filter_by(username=username).first()
+        if not user:
+            # This should not happen as we create users in set_user
+            flash('Usuario no encontrado', 'error')
+            return redirect(url_for('index'))
         
-        # Log to Google Sheets or local store
-        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        
-        # Store in temporary local cache if in development mode
-        if not sheets_helper.service:
-            new_entry = {
-                'timestamp': timestamp,
-                'username': username,
-                'workout_description': workout_description,
-                'image_url': image_url,
-                'date': datetime.now().strftime('%Y-%m-%d'),
-                'id': checkin_id
-            }
-            local_checkins.insert(0, new_entry)  # Add to beginning of list
-            
-            # Keep only the last 20 entries
-            if len(local_checkins) > 20:
-                local_checkins.pop()
-        else:
-            sheets_helper.add_entry(username, workout_description, image_url)
+        # Create a new checkin
+        new_checkin = Checkin(
+            user_id=user.id,
+            workout_description=workout_description
+        )
+        db.session.add(new_checkin)
+        db.session.commit()
         
         flash('¡Registro exitoso!', 'success')
         return redirect(url_for('feed'))
@@ -137,33 +130,83 @@ def checkin():
 @app.route('/api/group_members')
 def get_group_members():
     """Get list of users who have checked in"""
-    if not sheets_helper.service and local_checkins:
-        # Extract unique usernames from local checkins
-        usernames = set()
-        for entry in local_checkins:
-            usernames.add(entry['username'])
-        return jsonify(sorted(list(usernames)))
-        
-    members = sheets_helper.get_unique_users()
-    return jsonify(members)
+    users = User.query.all()
+    usernames = [user.username for user in users]
+    return jsonify(sorted(usernames))
 
 @app.route('/api/feed_data')
 def get_feed_data():
     """Get feed data for AJAX updates"""
     sort_by = request.args.get('sort_by', 'date')
     
-    if not sheets_helper.service and local_checkins:
-        # Sort local checkins
-        sorted_entries = local_checkins.copy()
-        if sort_by == 'person':
-            sorted_entries.sort(key=lambda x: x['username'])
-        else:
-            # Already sorted by date (most recent first)
-            pass
-        return jsonify(sorted_entries)
-        
-    entries = sheets_helper.get_recent_entries(days=7, sort_by=sort_by)
+    # Get recent checkins from database (last 7 days)
+    seven_days_ago = datetime.now() - timedelta(days=7)
+    query = Checkin.query.join(User).filter(Checkin.checkin_date >= seven_days_ago)
+    
+    if sort_by == 'person':
+        query = query.order_by(User.username, desc(Checkin.checkin_date))
+    else:
+        query = query.order_by(desc(Checkin.checkin_date))
+    
+    checkins = query.all()
+    
+    # Format data for template
+    entries = []
+    for checkin in checkins:
+        entries.append({
+            'id': checkin.id,
+            'username': checkin.user.username,
+            'workout_description': checkin.workout_description,
+            'date': checkin.formatted_date,
+            'time': checkin.formatted_time,
+            'timestamp': checkin.checkin_date.strftime('%Y-%m-%d %H:%M:%S')
+        })
+    
     return jsonify(entries)
+
+@app.route('/leaderboard')
+def leaderboard():
+    """Show leaderboard of users with most checkins"""
+    if 'username' not in session:
+        return redirect(url_for('index'))
+    
+    # Get current week's start (Monday)
+    today = datetime.now().date()
+    start_of_week = today - timedelta(days=today.weekday())
+    
+    # Get current month's start
+    start_of_month = datetime(today.year, today.month, 1).date()
+    
+    # Weekly leaderboard
+    weekly_leaders = db.session.query(
+        User.username,
+        func.count(Checkin.id).label('checkin_count')
+    ).join(Checkin).filter(
+        func.date(Checkin.checkin_date) >= start_of_week
+    ).group_by(
+        User.username
+    ).order_by(
+        func.count(Checkin.id).desc()
+    ).limit(10).all()
+    
+    # Monthly leaderboard
+    monthly_leaders = db.session.query(
+        User.username,
+        func.count(Checkin.id).label('checkin_count')
+    ).join(Checkin).filter(
+        func.date(Checkin.checkin_date) >= start_of_month
+    ).group_by(
+        User.username
+    ).order_by(
+        func.count(Checkin.id).desc()
+    ).limit(10).all()
+    
+    return render_template(
+        'leaderboard.html', 
+        weekly_leaders=weekly_leaders,
+        monthly_leaders=monthly_leaders,
+        username=session['username']
+    )
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
