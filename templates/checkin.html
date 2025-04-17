@@ -1,6 +1,6 @@
 {% extends 'layout.html' %}
 
-{% block title %}Gym Check-in{% endblock %}
+{% block title %}Registrar Entrenamiento{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
@@ -8,45 +8,92 @@
         <div class="card shadow">
             <div class="card-header bg-success text-white">
                 <h2 class="mb-0 text-center">
-                    <i class="fas fa-dumbbell me-2"></i>Gym Check-in
+                    <i class="fas fa-dumbbell me-2"></i>Registrar Entrenamiento
                 </h2>
             </div>
             <div class="card-body">
                 <div class="text-center mb-4">
                     <div class="display-1 mb-2">💪</div>
-                    <h3>Great job hitting the gym today, {{ username }}!</h3>
-                    <p class="text-muted">Share details about your workout below (optional)</p>
+                    <h3>¡Buen trabajo entrenando hoy, {{ username }}!</h3>
+                    <p class="text-muted">Comparte detalles de tu entrenamiento (opcional)</p>
                 </div>
                 
-                <form action="{{ url_for('checkin') }}" method="post" enctype="multipart/form-data">
+                <form action="{{ url_for('checkin') }}" method="post" enctype="multipart/form-data" id="checkin-form">
                     <div class="mb-4">
-                        <label for="workout_description" class="form-label">What did you train today?</label>
-                        <textarea class="form-control" id="workout_description" name="workout_description" rows="3" placeholder="E.g., Chest and triceps, 5km run, etc."></textarea>
-                        <div class="form-text">Optional: Share details about your workout</div>
+                        <label for="workout_description" class="form-label">¿Qué entrenaste hoy?</label>
+                        <textarea class="form-control" id="workout_description" name="workout_description" rows="3" placeholder="Ej., Pecho y tríceps, 5km de carrera, etc."></textarea>
+                        <div class="form-text">Opcional: Comparte detalles de tu entrenamiento</div>
                     </div>
                     
                     <div class="mb-4">
-                        <label for="workout_image" class="form-label">Upload a photo (optional)</label>
-                        <input class="form-control" type="file" id="workout_image" name="workout_image" accept="image/*">
-                        <div class="form-text">Share a gym selfie, progress pic, or workout setup</div>
+                        <label for="workout_image" class="form-label">Sube una foto (opcional)</label>
+                        <div class="d-flex gap-2 mb-2">
+                            <button type="button" class="btn btn-outline-primary flex-grow-1" id="camera-button">
+                                <i class="fas fa-camera me-2"></i>Usar cámara
+                            </button>
+                            <label for="workout_image" class="btn btn-outline-secondary flex-grow-1 mb-0">
+                                <i class="fas fa-upload me-2"></i>Subir archivo
+                            </label>
+                        </div>
+                        <input class="form-control d-none" type="file" id="workout_image" name="workout_image" accept="image/*" capture="user">
+                        <div class="form-text">Comparte una selfie en el gym, foto de progreso o setup de entrenamiento</div>
                     </div>
                     
                     <div class="preview-container d-none mb-4">
-                        <label class="form-label">Image Preview:</label>
+                        <label class="form-label">Vista previa:</label>
                         <div class="text-center">
-                            <img id="image-preview" class="img-fluid rounded" alt="Preview">
+                            <img id="image-preview" class="img-fluid rounded" alt="Vista previa">
                         </div>
                     </div>
                     
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-success btn-lg">
-                            <i class="fas fa-check-circle me-2"></i>Confirm Check-in
+                            <i class="fas fa-check-circle me-2"></i>Confirmar Registro
                         </button>
                         <a href="{{ url_for('feed') }}" class="btn btn-outline-secondary">
-                            <i class="fas fa-times me-2"></i>Cancel
+                            <i class="fas fa-times me-2"></i>Cancelar
                         </a>
                     </div>
+                    
+                    <!-- Hidden field to store the new check-in ID -->
+                    <input type="hidden" name="checkin_id" value="{{ now.timestamp() }}">
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Camera capture modal -->
+<div class="modal fade" id="cameraModal" tabindex="-1" aria-labelledby="cameraModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cameraModalLabel">Tomar foto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <video id="camera-stream" class="img-fluid rounded d-none" autoplay></video>
+                <canvas id="camera-canvas" class="d-none"></canvas>
+                <div id="camera-placeholder" class="text-center p-4 bg-light rounded">
+                    <i class="fas fa-camera fa-3x text-muted mb-3"></i>
+                    <p>La cámara se activará al dar clic en "Iniciar cámara"</p>
+                </div>
+                
+                <div class="d-grid gap-2 mt-3">
+                    <button id="start-camera" class="btn btn-primary">
+                        <i class="fas fa-video me-2"></i>Iniciar cámara
+                    </button>
+                    <button id="take-photo" class="btn btn-success d-none">
+                        <i class="fas fa-camera me-2"></i>Capturar foto
+                    </button>
+                    <button id="retake-photo" class="btn btn-secondary d-none">
+                        <i class="fas fa-redo me-2"></i>Tomar otra
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="use-photo" disabled>Usar esta foto</button>
             </div>
         </div>
     </div>
@@ -60,7 +107,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const imageInput = document.getElementById('workout_image');
     const imagePreview = document.getElementById('image-preview');
     const previewContainer = document.querySelector('.preview-container');
+    const cameraButton = document.getElementById('camera-button');
+    const cameraModal = new bootstrap.Modal(document.getElementById('cameraModal'));
     
+    // File upload preview
     imageInput.addEventListener('change', function() {
         if (this.files && this.files[0]) {
             const reader = new FileReader();
@@ -73,6 +123,133 @@ document.addEventListener('DOMContentLoaded', function() {
             reader.readAsDataURL(this.files[0]);
         } else {
             previewContainer.classList.add('d-none');
+        }
+    });
+    
+    // Camera functionality
+    let stream = null;
+    let capturedImage = null;
+    const video = document.getElementById('camera-stream');
+    const canvas = document.getElementById('camera-canvas');
+    const context = canvas.getContext('2d');
+    const startCameraBtn = document.getElementById('start-camera');
+    const takePhotoBtn = document.getElementById('take-photo');
+    const retakePhotoBtn = document.getElementById('retake-photo');
+    const usePhotoBtn = document.getElementById('use-photo');
+    const cameraPlaceholder = document.getElementById('camera-placeholder');
+    
+    cameraButton.addEventListener('click', function() {
+        cameraModal.show();
+    });
+    
+    startCameraBtn.addEventListener('click', function() {
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+                .then(function(mediaStream) {
+                    stream = mediaStream;
+                    video.srcObject = mediaStream;
+                    
+                    // Set video and canvas dimensions
+                    video.addEventListener('loadedmetadata', function() {
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                    });
+                    
+                    // Show video and capture button
+                    video.classList.remove('d-none');
+                    takePhotoBtn.classList.remove('d-none');
+                    startCameraBtn.classList.add('d-none');
+                    cameraPlaceholder.classList.add('d-none');
+                })
+                .catch(function(err) {
+                    console.error("Error accessing camera: ", err);
+                    alert("No se pudo acceder a la cámara. Verifica los permisos.");
+                });
+        } else {
+            alert("Tu navegador no soporta acceso a la cámara.");
+        }
+    });
+    
+    takePhotoBtn.addEventListener('click', function() {
+        // Draw current video frame on canvas
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        capturedImage = canvas.toDataURL('image/jpeg');
+        
+        // Show captured image
+        video.classList.add('d-none');
+        canvas.classList.remove('d-none');
+        
+        // Update buttons
+        takePhotoBtn.classList.add('d-none');
+        retakePhotoBtn.classList.remove('d-none');
+        usePhotoBtn.removeAttribute('disabled');
+    });
+    
+    retakePhotoBtn.addEventListener('click', function() {
+        // Reset to camera view
+        video.classList.remove('d-none');
+        canvas.classList.add('d-none');
+        
+        // Update buttons
+        takePhotoBtn.classList.remove('d-none');
+        retakePhotoBtn.classList.add('d-none');
+        usePhotoBtn.setAttribute('disabled', 'true');
+        
+        capturedImage = null;
+    });
+    
+    usePhotoBtn.addEventListener('click', function() {
+        if (capturedImage) {
+            // Convert data URL to Blob
+            fetch(capturedImage)
+                .then(res => res.blob())
+                .then(blob => {
+                    // Create a File object
+                    const file = new File([blob], "camera-capture.jpg", { type: "image/jpeg" });
+                    
+                    // Create a FileList-like object
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    
+                    // Assign to the file input
+                    imageInput.files = dataTransfer.files;
+                    
+                    // Update preview
+                    imagePreview.src = capturedImage;
+                    previewContainer.classList.remove('d-none');
+                    
+                    // Close modal
+                    cameraModal.hide();
+                    
+                    // Stop camera stream
+                    if (stream) {
+                        stream.getTracks().forEach(track => track.stop());
+                    }
+                });
+        }
+    });
+    
+    // Cleanup when modal is closed
+    document.getElementById('cameraModal').addEventListener('hidden.bs.modal', function() {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
+        
+        // Reset UI
+        video.classList.add('d-none');
+        canvas.classList.add('d-none');
+        cameraPlaceholder.classList.remove('d-none');
+        startCameraBtn.classList.remove('d-none');
+        takePhotoBtn.classList.add('d-none');
+        retakePhotoBtn.classList.add('d-none');
+        usePhotoBtn.setAttribute('disabled', 'true');
+    });
+    
+    // Add a hidden field with timestamp on form submission to ensure uniqueness
+    document.getElementById('checkin-form').addEventListener('submit', function() {
+        const timestampField = document.querySelector('input[name="checkin_id"]');
+        if (timestampField) {
+            timestampField.value = Date.now();
         }
     });
 });

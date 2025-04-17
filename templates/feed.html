@@ -1,6 +1,6 @@
 {% extends 'layout.html' %}
 
-{% block title %}Activity Feed{% endblock %}
+{% block title %}Actividad{% endblock %}
 
 {% block content %}
 <div class="row">
@@ -8,22 +8,22 @@
         <div class="card shadow mb-4">
             <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                 <h2 class="mb-0">
-                    <i class="fas fa-list me-2"></i>Activity Feed
+                    <i class="fas fa-list me-2"></i>Actividad
                 </h2>
                 <div class="dropdown">
                     <button class="btn btn-light dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-sort me-1"></i> Sort
+                        <i class="fas fa-sort me-1"></i> Ordenar
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="sortDropdown">
-                        <li><a class="dropdown-item sort-option" data-sort="date" href="#">By Date (Recent First)</a></li>
-                        <li><a class="dropdown-item sort-option" data-sort="person" href="#">By Person</a></li>
+                        <li><a class="dropdown-item sort-option" data-sort="date" href="#">Por Fecha (Recientes)</a></li>
+                        <li><a class="dropdown-item sort-option" data-sort="person" href="#">Por Persona</a></li>
                     </ul>
                 </div>
             </div>
             <div class="card-body">
                 <div class="text-center mb-3">
                     <a href="{{ url_for('checkin') }}" class="btn btn-lg btn-success">
-                        <i class="fas fa-dumbbell me-2"></i>I went to the gym today!
+                        <i class="fas fa-dumbbell me-2"></i>¡Entrené hoy!
                     </a>
                 </div>
                 
@@ -34,7 +34,7 @@
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <div>
                                     <strong class="fs-5">{{ entry.username }}</strong>
-                                    <span class="badge bg-success ms-2">Checked In</span>
+                                    <span class="badge bg-success ms-2">Registrado</span>
                                 </div>
                                 <div class="text-muted">
                                     <i class="far fa-clock me-1"></i>
@@ -44,14 +44,14 @@
                             <div class="card-body">
                                 {% if entry.workout_description %}
                                 <div class="workout-description mb-3">
-                                    <h5><i class="fas fa-running me-2"></i>Workout:</h5>
+                                    <h5><i class="fas fa-running me-2"></i>Entrenamiento:</h5>
                                     <p class="mb-0">{{ entry.workout_description }}</p>
                                 </div>
                                 {% endif %}
                                 
                                 {% if entry.image_url %}
                                 <div class="workout-image text-center">
-                                    <img src="{{ entry.image_url }}" alt="Workout photo by {{ entry.username }}" class="img-fluid rounded">
+                                    <img src="{{ entry.image_url }}" alt="Foto de {{ entry.username }}" class="img-fluid rounded">
                                 </div>
                                 {% endif %}
                             </div>
@@ -59,7 +59,7 @@
                         {% endfor %}
                     {% else %}
                         <div class="alert alert-info">
-                            <i class="fas fa-info-circle me-2"></i>No recent check-ins to display. Be the first to check in!
+                            <i class="fas fa-info-circle me-2"></i>No hay registros recientes. ¡Sé el primero en registrarte!
                         </div>
                     {% endif %}
                 </div>
@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const sortDropdown = document.getElementById('sortDropdown');
             
             // Update dropdown button text
-            sortDropdown.innerHTML = `<i class="fas fa-sort me-1"></i> Sort: ${sortBy === 'date' ? 'By Date' : 'By Person'}`;
+            sortDropdown.innerHTML = `<i class="fas fa-sort me-1"></i> Ordenar: ${sortBy === 'date' ? 'Por Fecha' : 'Por Persona'}`;
             
             // Fetch sorted data
             fetch(`/api/feed_data?sort_by=${sortBy}`)
@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!entries || entries.length === 0) {
             feedContainer.innerHTML = `
                 <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i>No recent check-ins to display. Be the first to check in!
+                    <i class="fas fa-info-circle me-2"></i>No hay registros recientes. ¡Sé el primero en registrarte!
                 </div>
             `;
             return;
@@ -116,7 +116,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <div>
                             <strong class="fs-5">${entry.username}</strong>
-                            <span class="badge bg-success ms-2">Checked In</span>
+                            <span class="badge bg-success ms-2">Registrado</span>
                         </div>
                         <div class="text-muted">
                             <i class="far fa-clock me-1"></i>
@@ -126,14 +126,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="card-body">
                         ${entry.workout_description ? `
                             <div class="workout-description mb-3">
-                                <h5><i class="fas fa-running me-2"></i>Workout:</h5>
+                                <h5><i class="fas fa-running me-2"></i>Entrenamiento:</h5>
                                 <p class="mb-0">${entry.workout_description}</p>
                             </div>
                         ` : ''}
                         
                         ${entry.image_url ? `
                             <div class="workout-image text-center">
-                                <img src="${entry.image_url}" alt="Workout photo by ${entry.username}" class="img-fluid rounded">
+                                <img src="${entry.image_url}" alt="Foto de ${entry.username}" class="img-fluid rounded">
                             </div>
                         ` : ''}
                     </div>
@@ -143,6 +143,18 @@ document.addEventListener('DOMContentLoaded', function() {
         
         feedContainer.innerHTML = feedHTML;
     }
+    
+    // Reload feed data every 60 seconds to show new check-ins
+    setInterval(function() {
+        fetch('/api/feed_data')
+            .then(response => response.json())
+            .then(data => {
+                updateFeedDisplay(data);
+            })
+            .catch(error => {
+                console.error('Error refreshing feed data:', error);
+            });
+    }, 60000);
 });
 </script>
 {% endblock %}

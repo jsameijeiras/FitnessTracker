@@ -1,55 +1,56 @@
-# 🏋️‍♂️ GymLog Club
+# 🏋️‍♂️ Report
 
-**Share your grind. Keep each other motivated.**
+**Repórtense banda**
 
-GymLog Club is a lightweight web application that allows a group of friends to log and view their gym activity through a clean and simple mobile-friendly interface. Users can check in daily, optionally upload training details and a photo, and see a daily/weekly report of everyone's activity.
+Report es una aplicación web ligera que permite a un grupo de amigos registrar y ver su actividad en el gimnasio a través de una interfaz simple y adaptada a dispositivos móviles. Los usuarios pueden registrarse diariamente, opcionalmente subir detalles de su entrenamiento y una foto, y ver un informe diario/semanal de la actividad de todos.
 
-## Features
+## Características
 
-- **Simple Identification**: Users identify themselves by entering a name or selecting from a dropdown of existing users. Optional group code for privacy.
-- **Daily Check-In**: Track your gym attendance with a simple check-in process.
-- **Optional Details**: Share what you trained and upload photos of your workout.
-- **Group Feed**: View everyone's recent check-ins, sortable by date or person.
-- **Mobile-Optimized UI**: Responsive design that works well on any device.
+- **Identificación Simple**: Los usuarios se identifican ingresando un nombre o seleccionando de una lista desplegable de usuarios existentes. Grupos predefinidos incluyendo "Cabritinhas".
+- **Registro Diario**: Seguimiento de asistencia al gimnasio con un proceso de registro simple.
+- **Detalles Opcionales**: Comparte qué entrenaste y sube fotos de tu entrenamiento.
+- **Feed de Grupo**: Visualiza los registros recientes de todos, ordenables por fecha o persona.
+- **Interfaz Optimizada para Móviles**: Diseño responsive que funciona bien en cualquier dispositivo.
+- **Captura de Fotos**: Usa la cámara de tu dispositivo directamente desde la aplicación.
 
 ## Backend
 
-The application uses Google Sheets as a backend database and Google Drive for image storage:
+La aplicación utiliza Google Sheets como base de datos y Google Drive para almacenamiento de imágenes:
 
-- Google Sheets stores check-in data (timestamp, username, workout description, image URL)
-- Google Drive hosts uploaded workout photos
-- Both are accessed through Google API clients in the Flask backend
+- Google Sheets almacena datos de registros (marca de tiempo, nombre de usuario, descripción del entrenamiento, URL de imagen)
+- Google Drive aloja fotos de entrenamientos subidas
+- Ambos se acceden a través de clientes de API de Google en el backend de Flask
 
-## Setup
+## Configuración
 
-### Required Environment Variables
+### Variables de Entorno Requeridas
 
-To use the Google Sheets and Drive APIs, the following environment variables are needed:
+Para usar las APIs de Google Sheets y Drive, se necesitan las siguientes variables de entorno:
 
-- `GOOGLE_SHEETS_API_KEY`: JSON credentials for Google Sheets API access
-- `GOOGLE_DRIVE_API_KEY`: JSON credentials for Google Drive API access
-- `GOOGLE_SHEET_ID`: ID of the Google Sheet to use for storing data
-- `GOOGLE_DRIVE_FOLDER_ID`: ID of the Google Drive folder for storing images
-- `SESSION_SECRET`: Secret key for Flask session encryption
+- `GOOGLE_SHEETS_API_KEY`: Credenciales JSON para acceso a la API de Google Sheets
+- `GOOGLE_DRIVE_API_KEY`: Credenciales JSON para acceso a la API de Google Drive
+- `GOOGLE_SHEET_ID`: ID de la hoja de Google Sheets a utilizar para almacenar datos
+- `GOOGLE_DRIVE_FOLDER_ID`: ID de la carpeta de Google Drive para almacenar imágenes
+- `SESSION_SECRET`: Clave secreta para cifrado de sesión de Flask
 
-Without these variables, the application runs in development mode with sample data.
+Sin estas variables, la aplicación funciona en modo desarrollo con datos locales temporales.
 
-### Running the Application
+### Ejecución de la Aplicación
 
-To start the server:
+Para iniciar el servidor:
 
 ```
 gunicorn --bind 0.0.0.0:5000 main:app
 ```
 
-## Development
+## Desarrollo
 
-The application is built with:
+La aplicación está construida con:
 
-- **Flask**: Python web framework
-- **Bootstrap 5**: Responsive UI components
-- **Google API Client**: For Sheets and Drive integration
+- **Flask**: Framework web de Python
+- **Bootstrap 5**: Componentes UI responsive
+- **Google API Client**: Para integración con Sheets y Drive
 
-## License
+## Licencia
 
-This project is licensed under the MIT License.
+Este proyecto está licenciado bajo la Licencia MIT.

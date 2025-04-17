@@ -1,6 +1,6 @@
 {% extends 'layout.html' %}
 
-{% block title %}Welcome{% endblock %}
+{% block title %}Bienvenido{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
@@ -8,55 +8,64 @@
         <div class="card shadow">
             <div class="card-header bg-primary text-white">
                 <h2 class="text-center mb-0">
-                    <i class="fas fa-dumbbell me-2"></i>GymLog Club
+                    <i class="fas fa-dumbbell me-2"></i>Report
                 </h2>
             </div>
             <div class="card-body">
                 <div class="text-center mb-4">
                     <div class="display-1 mb-3">🏋️‍♂️</div>
-                    <h3 class="text-muted">Share your grind. Keep each other motivated.</h3>
+                    <h3 class="text-muted">Repórtense banda</h3>
                 </div>
                 
                 <form action="{{ url_for('set_user') }}" method="post">
                     <div class="mb-3">
-                        <label for="username" class="form-label">Your Name/Initials</label>
-                        <input type="text" class="form-control form-control-lg" id="username" name="username" placeholder="Enter your name" required>
+                        <label for="username" class="form-label">Tu Nombre/Apodo</label>
+                        <input type="text" class="form-control form-control-lg" id="username" name="username" placeholder="Escribe tu nombre" required>
                     </div>
                     
                     <div class="mb-4">
-                        <label for="group_code" class="form-label">Group Code (Optional)</label>
-                        <input type="text" class="form-control" id="group_code" name="group_code" placeholder="Enter group code if you have one">
-                        <div class="form-text">A shared code among your friend group can prevent unwanted access.</div>
+                        <label for="group_code" class="form-label">Grupo</label>
+                        <select class="form-select" id="group_code" name="group_code">
+                            <option value="Cabritinhas" selected>Cabritinhas</option>
+                            <option value="Amigos">Amigos</option>
+                            <option value="Familia">Familia</option>
+                            <option value="Trabajo">Trabajo</option>
+                            <option value="custom">Otro (personalizado)</option>
+                        </select>
+                        <div id="custom-group" class="mt-2 d-none">
+                            <input type="text" class="form-control" id="custom_group_code" placeholder="Escribe el nombre de tu grupo">
+                        </div>
+                        <div class="form-text">Selecciona tu grupo para compartir actividades sólo con ellos.</div>
                     </div>
                     
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="fas fa-sign-in-alt me-2"></i>Enter GymLog Club
+                            <i class="fas fa-sign-in-alt me-2"></i>Entrar a Report
                         </button>
                     </div>
                 </form>
             </div>
             <div class="card-footer bg-light">
                 <div class="text-center">
-                    <p class="mb-0">No registration required - just enter your name to get started!</p>
+                    <p class="mb-0">No necesitas registrarte - ¡sólo ingresa tu nombre para comenzar!</p>
                 </div>
             </div>
         </div>
 
         <div class="card mt-4 shadow">
             <div class="card-header bg-secondary text-white">
-                <h4 class="mb-0">About GymLog Club</h4>
+                <h4 class="mb-0">Acerca de Report</h4>
             </div>
             <div class="card-body">
-                <p class="lead">A simple way for friends to track gym workouts and stay motivated together!</p>
+                <p class="lead">¡Una forma sencilla para que amigos registren sus entrenamientos y se motiven juntos!</p>
                 
                 <div class="d-flex align-items-center mb-3">
                     <div class="feature-icon text-primary me-3">
                         <i class="fas fa-check-circle fa-2x"></i>
                     </div>
                     <div>
-                        <h5 class="mb-0">Check in when you hit the gym</h5>
-                        <p class="text-muted">Let your friends know you crushed it today</p>
+                        <h5 class="mb-0">Regístrate cuando vayas al gym</h5>
+                        <p class="text-muted">Que tus amigos sepan que lo lograste hoy</p>
                     </div>
                 </div>
                 
@@ -65,8 +74,8 @@
                         <i class="fas fa-clipboard-list fa-2x"></i>
                     </div>
                     <div>
-                        <h5 class="mb-0">Share your workout details</h5>
-                        <p class="text-muted">Optionally log what muscles you trained</p>
+                        <h5 class="mb-0">Comparte los detalles de tu entrenamiento</h5>
+                        <p class="text-muted">Registra qué músculos entrenaste</p>
                     </div>
                 </div>
                 
@@ -75,12 +84,35 @@
                         <i class="fas fa-camera fa-2x"></i>
                     </div>
                     <div>
-                        <h5 class="mb-0">Upload workout photos</h5>
-                        <p class="text-muted">Show off your progress or gym setup</p>
+                        <h5 class="mb-0">Sube fotos de tu entrenamiento</h5>
+                        <p class="text-muted">Muestra tu progreso o setup de gimnasio</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const groupSelect = document.getElementById('group_code');
+    const customGroupDiv = document.getElementById('custom-group');
+    const customGroupInput = document.getElementById('custom_group_code');
+    
+    // Handle custom group selection
+    groupSelect.addEventListener('change', function() {
+        if (this.value === 'custom') {
+            customGroupDiv.classList.remove('d-none');
+            customGroupInput.setAttribute('name', 'group_code');
+            this.removeAttribute('name');
+        } else {
+            customGroupDiv.classList.add('d-none');
+            customGroupInput.removeAttribute('name');
+            this.setAttribute('name', 'group_code');
+        }
+    });
+});
+</script>
 {% endblock %}

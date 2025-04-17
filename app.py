@@ -1,6 +1,7 @@
 import os
 import logging
 import json
+import uuid
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, url_for, jsonify, session, flash
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -13,7 +14,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 # Initialize Flask application
 app = Flask(__name__)
-app.secret_key = os.environ.get("SESSION_SECRET", "gymlogclub-dev-key")
+app.secret_key = os.environ.get("SESSION_SECRET", "report-dev-key")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 # Add template context processor for current date/time
@@ -25,9 +26,12 @@ def inject_now():
 sheets_helper = GoogleSheetsHelper()
 drive_helper = GoogleDriveHelper()
 
+# Store local check-ins for development mode
+local_checkins = []
+
 # Global variables
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-UPLOAD_FOLDER = '/tmp/gymlogclub_uploads'
+UPLOAD_FOLDER = '/tmp/report_uploads'
 
 # Ensure upload directory exists
 if not os.path.exists(UPLOAD_FOLDER):
@@ -49,7 +53,7 @@ def set_user():
     group_code = request.form.get('group_code')
     
     if not username:
-        flash('Please provide a username', 'error')
+        flash('Por favor, ingresa tu nombre', 'error')
         return redirect(url_for('index'))
     
     session['username'] = username
@@ -70,8 +74,12 @@ def feed():
     if 'username' not in session:
         return redirect(url_for('index'))
     
-    # Get feed data from Google Sheets
-    entries = sheets_helper.get_recent_entries(days=7)
+    # Get feed data from Google Sheets or local cache
+    if not sheets_helper.service and local_checkins:
+        # Use local checkins in development mode
+        entries = local_checkins
+    else:
+        entries = sheets_helper.get_recent_entries(days=7)
     
     return render_template('feed.html', entries=entries, username=session['username'])
 
@@ -84,6 +92,7 @@ def checkin():
     if request.method == 'POST':
         username = session['username']
         workout_description = request.form.get('workout_description', '')
+        checkin_id = request.form.get('checkin_id', str(uuid.uuid4()))
         
         image_url = None
         if 'workout_image' in request.files:
@@ -99,10 +108,28 @@ def checkin():
                 # Remove temporary file
                 os.remove(file_path)
         
-        # Log to Google Sheets
-        sheets_helper.add_entry(username, workout_description, image_url)
+        # Log to Google Sheets or local store
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         
-        flash('Check-in successful!', 'success')
+        # Store in temporary local cache if in development mode
+        if not sheets_helper.service:
+            new_entry = {
+                'timestamp': timestamp,
+                'username': username,
+                'workout_description': workout_description,
+                'image_url': image_url,
+                'date': datetime.now().strftime('%Y-%m-%d'),
+                'id': checkin_id
+            }
+            local_checkins.insert(0, new_entry)  # Add to beginning of list
+            
+            # Keep only the last 20 entries
+            if len(local_checkins) > 20:
+                local_checkins.pop()
+        else:
+            sheets_helper.add_entry(username, workout_description, image_url)
+        
+        flash('¡Registro exitoso!', 'success')
         return redirect(url_for('feed'))
     
     return render_template('checkin.html', username=session['username'])
@@ -110,6 +137,13 @@ def checkin():
 @app.route('/api/group_members')
 def get_group_members():
     """Get list of users who have checked in"""
+    if not sheets_helper.service and local_checkins:
+        # Extract unique usernames from local checkins
+        usernames = set()
+        for entry in local_checkins:
+            usernames.add(entry['username'])
+        return jsonify(sorted(list(usernames)))
+        
     members = sheets_helper.get_unique_users()
     return jsonify(members)
 
@@ -117,6 +151,17 @@ def get_group_members():
 def get_feed_data():
     """Get feed data for AJAX updates"""
     sort_by = request.args.get('sort_by', 'date')
+    
+    if not sheets_helper.service and local_checkins:
+        # Sort local checkins
+        sorted_entries = local_checkins.copy()
+        if sort_by == 'person':
+            sorted_entries.sort(key=lambda x: x['username'])
+        else:
+            # Already sorted by date (most recent first)
+            pass
+        return jsonify(sorted_entries)
+        
     entries = sheets_helper.get_recent_entries(days=7, sort_by=sort_by)
     return jsonify(entries)
 
