@@ -1,11 +1,12 @@
+
 services:
   - type: web
     name: report-app
     runtime: python
-    buildCommand: poetry install
-    startCommand: gunicorn main:app
+    buildCommand: ./build.sh
+    startCommand: gunicorn app:app
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.11
-      - key: POETRY_VERSION
-        value: 1.7.1
+      - key: DATABASE_URL
+        sync: false

@@ -1,9 +1,10 @@
+
 #!/usr/bin/env bash
 # exit on error
 set -o errexit
 
-# Instalar dependencias con pip
+# Install Python dependencies
 pip install -r render_requirements.txt
 
-# Crear directorios necesarios
-mkdir -p /tmp/report_uploads
+# Create required directories
+mkdir -p instance
