@@ -1,0 +1,96 @@
+Great choice using Render for deploying your Flask app! Here's a step-by-step guide to get your [FitnessTracker](https://github.com/jsameijeiras/FitnessTracker) repository up and running on Render:
+
+---
+
+## 🚀 Deployment Steps on Render
+
+### 1. **Prepare Your Flask App**
+
+Ensure your project directory includes the following:
+
+- **`requirements.txt`**:List all your Python dependencies here
+
+ To generate this file, run
+
+ 
+```bash
+  pip freeze > requirements.txt
+  ```
+
+ Make sure to include `gunicorn`, as Render uses it to serve Flask apps
+
+- **`Procfile`** (optional):While Render allows specifying the start command in the dashboard, including a `Procfile` can be helpful
+
+ Add the following line
+
+ 
+```
+  web: gunicorn app:app
+  ```
+
+ Replace `app:app` with the appropriate module and application name if different
+
+- **Flask Application Structure**:Ensure your Flask app is structured correctly
+
+ For example, if your main application file is `app.py`, it should contain
+
+ 
+```python
+  from flask import Flask
+
+  app = Flask(__name__)
+
+  @app.route('/')
+  def index():
+      return "Hello, World!"
+  ```
+
+ Ensure that the `app` variable is the Flask application instance
+
+### 2. **Push to GitHub**
+Ensure your latest code is committed and pushed to a GitHub repository
+
+### 3. **Create a New Web Service on Render**
+
+-Log in to [Render](https://render.com/)
+
+-Click on **"New"** and select **"Web Service"**
+
+-Connect your GitHub account if you haven't already
+
+-Select your repository (e.g., `FitnessTracker`)
+
+-Fill in the necessary details
+
+  - **Name**:Choose a name for your service
+
+  - **Region**:Select the region closest to your users
+
+  - **Branch**:Select the branch to deploy (e.g., `main`)
+
+  - **Build Command**:`pip install -r requirements.txt
+
+  - **Start Command**:`gunicorn app:app
+
+    Replace `app:app` with your application's entry point if different.
+
+### 4. **Set Environment Variables (If Needed)**
+If your application requires environment variables (e.g., API keys, database URLs), set them in the **Environment** tab of your Render service dashboard
+
+### 5. **Deploy**
+Click **"Create Web Service"**. Render will build and deploy your application
+Once deployed, your app will be accessible at `https://your-service-name.onrender.com`
+
+---
+
+## ✅ Additional Tips
+
+- **Static Files**:Ensure that your static files (e.g., CSS, JavaScript) are placed in a `static` directory, and templates in a `templates` directory. Flask automatically serves files from these directories
+
+- **Database**:If you're using a database, consider using Render's managed PostgreSQL service or connect to an external database
+
+- **Custom Domain**:You can add a custom domain to your Render service in the **Settings** tab
+
+---
+
+If you encounter any issues or need further assistance with specific configurations, feel free to ask! 
