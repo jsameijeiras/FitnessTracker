@@ -1,0 +1,86 @@
+{% extends 'layout.html' %}
+
+{% block title %}Welcome{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h2 class="text-center mb-0">
+                    <i class="fas fa-dumbbell me-2"></i>GymLog Club
+                </h2>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="display-1 mb-3">🏋️‍♂️</div>
+                    <h3 class="text-muted">Share your grind. Keep each other motivated.</h3>
+                </div>
+                
+                <form action="{{ url_for('set_user') }}" method="post">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Your Name/Initials</label>
+                        <input type="text" class="form-control form-control-lg" id="username" name="username" placeholder="Enter your name" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="group_code" class="form-label">Group Code (Optional)</label>
+                        <input type="text" class="form-control" id="group_code" name="group_code" placeholder="Enter group code if you have one">
+                        <div class="form-text">A shared code among your friend group can prevent unwanted access.</div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-sign-in-alt me-2"></i>Enter GymLog Club
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer bg-light">
+                <div class="text-center">
+                    <p class="mb-0">No registration required - just enter your name to get started!</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4 shadow">
+            <div class="card-header bg-secondary text-white">
+                <h4 class="mb-0">About GymLog Club</h4>
+            </div>
+            <div class="card-body">
+                <p class="lead">A simple way for friends to track gym workouts and stay motivated together!</p>
+                
+                <div class="d-flex align-items-center mb-3">
+                    <div class="feature-icon text-primary me-3">
+                        <i class="fas fa-check-circle fa-2x"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0">Check in when you hit the gym</h5>
+                        <p class="text-muted">Let your friends know you crushed it today</p>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center mb-3">
+                    <div class="feature-icon text-primary me-3">
+                        <i class="fas fa-clipboard-list fa-2x"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0">Share your workout details</h5>
+                        <p class="text-muted">Optionally log what muscles you trained</p>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center">
+                    <div class="feature-icon text-primary me-3">
+                        <i class="fas fa-camera fa-2x"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0">Upload workout photos</h5>
+                        <p class="text-muted">Show off your progress or gym setup</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

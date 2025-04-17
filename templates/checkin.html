@@ -1,0 +1,80 @@
+{% extends 'layout.html' %}
+
+{% block title %}Gym Check-in{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h2 class="mb-0 text-center">
+                    <i class="fas fa-dumbbell me-2"></i>Gym Check-in
+                </h2>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="display-1 mb-2">💪</div>
+                    <h3>Great job hitting the gym today, {{ username }}!</h3>
+                    <p class="text-muted">Share details about your workout below (optional)</p>
+                </div>
+                
+                <form action="{{ url_for('checkin') }}" method="post" enctype="multipart/form-data">
+                    <div class="mb-4">
+                        <label for="workout_description" class="form-label">What did you train today?</label>
+                        <textarea class="form-control" id="workout_description" name="workout_description" rows="3" placeholder="E.g., Chest and triceps, 5km run, etc."></textarea>
+                        <div class="form-text">Optional: Share details about your workout</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="workout_image" class="form-label">Upload a photo (optional)</label>
+                        <input class="form-control" type="file" id="workout_image" name="workout_image" accept="image/*">
+                        <div class="form-text">Share a gym selfie, progress pic, or workout setup</div>
+                    </div>
+                    
+                    <div class="preview-container d-none mb-4">
+                        <label class="form-label">Image Preview:</label>
+                        <div class="text-center">
+                            <img id="image-preview" class="img-fluid rounded" alt="Preview">
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-check-circle me-2"></i>Confirm Check-in
+                        </button>
+                        <a href="{{ url_for('feed') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Image preview functionality
+    const imageInput = document.getElementById('workout_image');
+    const imagePreview = document.getElementById('image-preview');
+    const previewContainer = document.querySelector('.preview-container');
+    
+    imageInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                imagePreview.src = e.target.result;
+                previewContainer.classList.remove('d-none');
+            }
+            
+            reader.readAsDataURL(this.files[0]);
+        } else {
+            previewContainer.classList.add('d-none');
+        }
+    });
+});
+</script>
+{% endblock %}
